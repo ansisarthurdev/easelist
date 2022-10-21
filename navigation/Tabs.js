@@ -3,7 +3,8 @@ import styled from 'styled-components/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 
 //screens
-import { StorageStackNavigator } from './StorageStack';
+import { StorageStackNavigator } from './StorageStack'
+import { ActiveReservationStackNavigator } from './ActiveReservationsStack'
 
 //icons
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -42,7 +43,7 @@ const Tabs = () => {
 
         <Tab.Screen 
             name="StorageUsage" 
-            component={StorageStackNavigator} 
+            component={ActiveReservationStackNavigator} 
             options={{
                 tabBarIcon: ({focused}) => (
                     <Container>

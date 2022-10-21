@@ -11,7 +11,6 @@ const UserBar = () => {
         </View>
 
         <UserAvatar
-        className='user-image'
         source={{uri: 'https://lh3.googleusercontent.com/a/ALm5wu2I4LRRStJa7Q-Walr64YnnzPdsJOHzbQLG4B2uZQ=s83-c-mo'}}
         />
     </Wrapper>
