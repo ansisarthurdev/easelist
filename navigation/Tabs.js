@@ -35,7 +35,7 @@ const Tabs = () => {
             options={{
                 tabBarIcon: ({focused}) => (
                     <Container>
-                        {focused ? <FontAwesome5 name="warehouse" size={18} color='#24282C' /> : <FontAwesome5 name="warehouse" size={18} color='#6A6A6A' />}
+                        {focused ? <FontAwesome5 name="warehouse" size={18} color='#24282C' />: <FontAwesome5 name="warehouse" size={18} color='#6A6A6A' />}
                     </Container>
                 ),
                 headerShown: false,
