@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 //screens
 import { StorageStackNavigator } from './StorageStack'
 import { ActiveReservationStackNavigator } from './ActiveReservationsStack'
+import { ReservationNavigator } from './ReservationStack'
 
 //icons
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -56,7 +57,7 @@ const Tabs = () => {
 
         <Tab.Screen 
             name="StorageReservation" 
-            component={StorageStackNavigator} 
+            component={ReservationNavigator} 
             options={{
                 tabBarIcon: ({focused}) => (
                     <Container>
