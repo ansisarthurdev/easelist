@@ -152,7 +152,7 @@ const Wrapper = styled.View`
 background-color: #D9D9D9;
 display: flex;
 height: 100%;
-padding: 40px 5% 0;
+padding: 50px 5% 0;
 `
 
 export default CurrentActiveReservationScreen

@@ -8,13 +8,24 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 //components
 import Modal from "react-native-modal";
 
+//firebase
+import { signOut } from 'firebase/auth';
+import { auth } from '../app/firebase';
+
+//redux
+import { selectUser, setUser } from '../app/appSlice'
+import { useSelector, useDispatch } from 'react-redux';
+
 const UserBar = () => {
 
+  const dispatch = useDispatch();
   const [userModal, setUserModal] = useState(false);
+  const user = useSelector(selectUser);
 
   const logOut = () => {
     //..
-
+    auth.signOut();
+    dispatch(setUser(null));
     setUserModal(false);
   }
 
@@ -22,12 +33,12 @@ const UserBar = () => {
     <Wrapper>
         <View>
             <TextWelcome>Prieks tevi redzēt,</TextWelcome>
-            <TextUser>ansisarthurdev</TextUser>
+            <TextUser>{user?.displayName}</TextUser>
         </View>
 
         <TouchableOpacity onPress={() => setUserModal(true)}>
           <UserAvatar
-          source={{uri: 'https://lh3.googleusercontent.com/a/ALm5wu2I4LRRStJa7Q-Walr64YnnzPdsJOHzbQLG4B2uZQ=s83-c-mo'}}
+          source={{uri: user?.photoURL}}
           />
         </TouchableOpacity>
 

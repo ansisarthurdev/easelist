@@ -1,6 +1,4 @@
-//screen navigation
-import { NavigationContainer } from '@react-navigation/native';
-import Tabs from './navigation/Tabs';
+import Navigation from './navigation/Navigation';
 
 //redux
 import { Provider } from 'react-redux';
@@ -10,9 +8,7 @@ export default function App() {
   return (
 
     <Provider store={store}>
-      <NavigationContainer>
-        <Tabs />
-      </NavigationContainer>
+      <Navigation />
     </Provider>
   );
 }

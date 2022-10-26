@@ -1,23 +1,23 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState={
-    preview: null,
+    user: null,
 }
 
 export const appSlice = createSlice({
     name: 'app',
     initialState,
     reducers: {
-        setPreview: (state, action) => {
-            state.preview = action.payload;
+        setUser: (state, action) => {
+            state.user = action.payload;
         }
     }
 })
 
 //dispatch
-export const { setPreview } = appSlice.actions;
+export const { setUser } = appSlice.actions;
 
 //selectors
-export const selectPreview = (state) => state.app.preview;
+export const selectUser = (state) => state.app.user;
 
 export default appSlice.reducer;
