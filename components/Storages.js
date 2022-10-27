@@ -11,19 +11,43 @@ import { Feather } from '@expo/vector-icons'
 //components
 import Modal from "react-native-modal";
 
+//firebase
+import { doc, onSnapshot, collection, addDoc, updateDoc, arrayUnion, query, orderBy, serverTimestamp } from "firebase/firestore"; 
+import { db } from '../app/firebase'
+
+//redux
+import { useDispatch } from 'react-redux'
+import { setCategoryState } from '../app/appSlice'
 
 const Storages = () => {
 
+    const dispatch = useDispatch();
     const navigation = useNavigation();
     const [storagesMenu, openStorages] = useState(false);
 
     //storages
     const [create, setCreate] = useState(false);
     const [storageName, setStorageName] = useState('');
-    const storages = ['Noliktava nr. 1', 'Noliktava nr. 2', 'Noliktava nr. 3'];
 
-    const createStorage = () => {
+    const [storagesInfo, setStoragesInfo] = useState(null);
+    const [selectedStorage, setSelectedStorage] = useState(null);
+
+    const createStorage = async () => {
         //...create storage function
+        const docRef = await addDoc(collection(db, "storage"), {
+            name: storageName,
+        });
+
+        const newStorageRef = doc(db, "storage", docRef.id);
+        const storagesInfoRef = doc(db, 'storagesInfo', 'storagesInfo');
+        
+        await updateDoc(newStorageRef, {
+            id: docRef.id
+        });
+
+        await updateDoc(storagesInfoRef, {
+            storages: arrayUnion({name: storageName, id: docRef.id})
+        });
 
         setCreate(false);
         setStorageName('');
@@ -31,110 +55,122 @@ const Storages = () => {
 
     //storages category
     const [category, setCategory] = useState(false);
+    const [categoryName, setCategoryName] = useState('');
+    const [categories, setCategories] = useState([]);
 
-    const createCategory = () => {
+    const createCategory = async () => {
         //...create storage function
+        const selected = selectedStorage.id;
+
+        const docRef = await addDoc(collection(db, "storage", selected, "category"), {
+            name: categoryName,
+            totalItems: 0,
+            availableItems: 0,
+            timestamp: serverTimestamp()
+        });
+
+        await updateDoc(doc(db, 'storage', selectedStorage.id, "category", docRef.id), {
+            id: docRef.id
+        })
 
         setCategory(false);
-        setStorageName('');
+        setCategoryName('');
     }
+
+    //get storages
+    const getStorages = async () => {
+        const unsub = onSnapshot(doc(db, "storagesInfo", "storagesInfo"), (doc) => {
+            setStoragesInfo(doc.data());
+            setSelectedStorage(doc.data().storages[0]);
+        });
+
+        return unsub;
+    }
+
+    //get categories
+    const getCategories = () => {
+        setCategories([]);
+        const selected = selectedStorage.id;
+
+        const unsub = onSnapshot(query(collection(db, 'storage', selected, 'category'), orderBy('timestamp', 'desc')), (snapshot) => {
+            setCategories(snapshot.docs);
+        });
+
+        return unsub;
+    }
+
+    //open category
+    const openCategory = (data) => {
+        dispatch(setCategoryState({
+            storage: selectedStorage,
+            category: {
+                id: data.id,
+                name: data.name
+            }
+        }))
+
+        navigation.navigate('CurrentStorageScreen')
+    }
+
+    useEffect(() => {
+        getStorages();
+    }, [])
+
+    useEffect(() => {
+        selectedStorage && getCategories();
+    }, [selectedStorage])
 
   return (
     <Wrapper showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
         <StoragesContainer>
-            <Text style={{color: '#24282C', fontWeight: 'bold', fontSize: 18}}>Noliktavas ({storages?.length})</Text>
+            <Text style={{color: '#24282C', fontWeight: 'bold', fontSize: 18}}>Noliktavas ({storagesInfo?.storages?.length})</Text>
             <AddButton onPress={() => setCreate(true)}><Text style={{color: '#24282C', fontSize: 18, fontWeight: 'bold'}}>+</Text></AddButton>
         </StoragesContainer>
 
         <View style={{width: '100%', height: 1, backgroundColor: '#6A6A6A', marginVertical: 15}} />
 
-        <DropDownHeading onPress={() => openStorages(!storagesMenu)}>
-            <Text style={{color: '#24282C', fontWeight: 'bold', fontSize: 18}}>Noliktava nr. 1</Text>
-            {storagesMenu ? <Octicons name="triangle-down" size={24} color="black"/> : <Octicons name="triangle-up" size={24} color="black"/>}
-        </DropDownHeading>
+        {storagesInfo?.storages?.length > 0 && <>
+            <DropDownHeading onPress={() => openStorages(!storagesMenu)}>
+                <Text style={{color: '#24282C', fontWeight: 'bold', fontSize: 18}}>{selectedStorage?.name}</Text>
+                {storagesMenu ? <Octicons name="triangle-down" size={24} color="black"/> : <Octicons name="triangle-up" size={24} color="black"/>}
+            </DropDownHeading>
 
-        {storagesMenu &&
-        <DropDownContent>
-            {storages.map(storage => {
+            {storagesMenu &&
+            <DropDownContent>
+                {storagesInfo?.storages.map(storage => {
+                    return(
+                        <DropDownItem key={storage.id} onPress={() => { setSelectedStorage(storage); openStorages(!storagesMenu);}}>
+                            <Text>{storage.name}</Text>
+                        </DropDownItem>
+                    )
+                })}
+            </DropDownContent>
+            }
 
-                return(
-                    <DropDownItem key={storage}>
-                        <Text>{storage}</Text>
-                    </DropDownItem>
-                )
-            })}
-        </DropDownContent>
-        }
+            <AddStorageBtn onPress={() => setCategory(!category)} style={{marginTop: storagesMenu ? 30 : 0}}><Text style={{color: 'white', fontWeight: 'bold'}}>Pievienot</Text></AddStorageBtn>
+ 
+            <StorageContainer>
+                {categories?.length < 1 && <Text style={{textAlign: 'center', opacity: .5}}>Nav pievienotu kategoriju!</Text>}
+                {categories?.map(category => (
+                <StorageItem key={category?.data().id}>
+                    <View>
+                        <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderRadius: 10}}>
+                            <Text style={{color: '#24282C', fontWeight: 'bold'}}>{category?.data().name}</Text>
+                        </View>
 
-        <AddStorageBtn onPress={() => setCategory(!category)} style={{marginTop: storagesMenu ? 30 : 0}}><Text style={{color: 'white', fontWeight: 'bold'}}>Pievienot</Text></AddStorageBtn>
-
-        <StorageContainer>
-
-            <StorageItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderRadius: 10}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
+                        <View style={{marginLeft: 10}}>
+                            <Text style={{color: '#24282C', fontWeight: 'bold'}}>{category?.data().availableItems}/{category?.data().totalItems}</Text>
+                        </View>
                     </View>
 
-                    <View style={{marginLeft: 10}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>20/25</Text>
-                    </View>
-                </View>
+                    <ArrowRightCircle onPress={() => openCategory(category?.data())}>
+                        <Feather name="arrow-right" size={24} color="black" />
+                    </ArrowRightCircle>
+                </StorageItem>
+                ))}
+            </StorageContainer>
+        </>} 
 
-                <ArrowRightCircle onPress={() => navigation.navigate('CurrentStorageScreen')}>
-                    <Feather name="arrow-right" size={24} color="black" />
-                </ArrowRightCircle>
-            </StorageItem>
-
-            <StorageItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderRadius: 10}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-
-                    <View style={{marginLeft: 10}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>20/25</Text>
-                    </View>
-                </View>
-
-                <ArrowRightCircle>
-                    <Feather name="arrow-right" size={24} color="black" />
-                </ArrowRightCircle>
-            </StorageItem>
-
-            <StorageItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderRadius: 10}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-
-                    <View style={{marginLeft: 10}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>20/25</Text>
-                    </View>
-                </View>
-
-                <ArrowRightCircle>
-                    <Feather name="arrow-right" size={24} color="black" />
-                </ArrowRightCircle>
-            </StorageItem>
-
-            <StorageItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderRadius: 10}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-
-                    <View style={{marginLeft: 10}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>20/25</Text>
-                    </View>
-                </View>
-
-                <ArrowRightCircle>
-                    <Feather name="arrow-right" size={24} color="black" />
-                </ArrowRightCircle>
-            </StorageItem>
-
-        </StorageContainer>
 
         <View style={{width: '100%', height: 100}}></View>
 
@@ -174,7 +210,7 @@ const Storages = () => {
                 <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 20}}>Pievienot kategoriju</Text>
                 
                 <InputContainer>
-                    <TextInput placeholder='Kategorijas nosaukums' onChangeText={setStorageName} value={storageName}/>
+                    <TextInput placeholder='Kategorijas nosaukums' onChangeText={setCategoryName} value={categoryName}/>
                 </InputContainer>
                 
                 <ModalButton onPress={createCategory}><Text style={{color: 'white', fontWeight: 'bold'}}>Pievienot</Text></ModalButton>

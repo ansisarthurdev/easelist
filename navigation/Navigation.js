@@ -32,7 +32,7 @@ const Navigation = () => {
   
   return (
       <NavigationContainer>
-        {!user ? <LoginScreen /> : <Tabs />}
+        {user ? <LoginScreen /> : <Tabs />}
       </NavigationContainer>
   )
 }
