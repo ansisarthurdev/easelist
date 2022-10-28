@@ -17,22 +17,25 @@ const Navigation = () => {
 
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
+  const [loading, setLoading] = useState(true);
 
   const checkIfLogged = () => {
     const unsubscribe = auth.onAuthStateChanged(auth => {
       if(auth){
         dispatch(setUser(auth))
       }
+
+      setLoading(false);
     })
   }
 
   useEffect(() => {
     checkIfLogged();
   }, [])
-  
+
   return (
       <NavigationContainer>
-        {user ? <LoginScreen /> : <Tabs />}
+        {loading ? <Splash /> : !user ? <LoginScreen /> : <Tabs />}
       </NavigationContainer>
   )
 }

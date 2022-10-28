@@ -54,11 +54,13 @@ const CurrentStorageScreen = () => {
         const docRef = await addDoc(collection(db, "storage", category?.storage.id, 'category', category?.category.id, 'items'), {
           name: `${name + number} ${category?.category?.name}`,
           status: 'Noliktavā',
-          timestamp: serverTimestamp()
+          timestamp: serverTimestamp(),
+          storageId: category?.storage.id,
+          categoryId: category?.category.id
         });
         
         updateDoc(doc(db, "storage", category?.storage.id, 'category', category?.category.id, 'items', docRef.id), {
-          id: docRef.id
+          itemId: docRef.id
         });
 
         updateDoc(doc(db, 'storage', category?.storage.id, 'category', category?.category.id), {
@@ -75,11 +77,13 @@ const CurrentStorageScreen = () => {
           const docRef = await addDoc(collection(db, "storage", category?.storage.id, 'category', category?.category.id, 'items'), {
             name: `${name + itemNumber} ${category?.category?.name}`,
             status: 'Noliktavā',
-            timestamp: serverTimestamp()
+            timestamp: serverTimestamp(),
+            storageId: category?.storage.id,
+            categoryId: category?.category.id
           });
 
           updateDoc(doc(db, "storage", category?.storage.id, 'category', category?.category.id, 'items', docRef.id), {
-            id: docRef.id
+            itemId: docRef.id
           });
 
           itemNumber = itemNumber + 1;
@@ -133,6 +137,14 @@ const CurrentStorageScreen = () => {
                 <View><Text>{item.data().name}</Text></View>
                 <View style={{alignItems: 'flex-end'}}>
                   {item.data().status === 'Noliktavā' && <Text style={{fontWeight: 'bold'}}>{item.data().status}</Text>}
+                  {item.data().status === 'Rezervēts' && <>
+                    <Text style={{fontWeight: 'bold'}}>{item.data().status}</Text>
+                    <Text style={{fontWeight: 'bold'}}>{item.data().reservationName}</Text>
+                  </>}
+                  {item.data().status === 'Lietošanā' && <>
+                    <Text style={{fontWeight: 'bold'}}>{item.data().status}</Text>
+                    <Text style={{fontWeight: 'bold'}}>{item.data().reservationName}</Text>
+                  </>}
                 </View>
               </Item>
               ))}
@@ -161,7 +173,7 @@ const CurrentStorageScreen = () => {
                 <ModalItem style={{width: '70%'}}>
                   <ModalItemHeading>Apzīmējums</ModalItemHeading>
                   <InputContainer>
-                    <TextInput cursorColor='#24282C' placeholder='Nosaukums' onChangeText={setName} value={name}/>
+                    <TextInput cursorColor='#24282C' placeholder='Apzīmējums' onChangeText={setName} value={name}/>
                   </InputContainer>
                 </ModalItem>
 

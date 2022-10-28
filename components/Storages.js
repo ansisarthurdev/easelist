@@ -17,7 +17,7 @@ import { db } from '../app/firebase'
 
 //redux
 import { useDispatch } from 'react-redux'
-import { setCategoryState } from '../app/appSlice'
+import { setCategoryState, setStorages } from '../app/appSlice'
 
 const Storages = () => {
 
@@ -66,7 +66,7 @@ const Storages = () => {
             name: categoryName,
             totalItems: 0,
             availableItems: 0,
-            timestamp: serverTimestamp()
+            timestamp: serverTimestamp(),
         });
 
         await updateDoc(doc(db, 'storage', selectedStorage.id, "category", docRef.id), {
@@ -81,6 +81,7 @@ const Storages = () => {
     const getStorages = async () => {
         const unsub = onSnapshot(doc(db, "storagesInfo", "storagesInfo"), (doc) => {
             setStoragesInfo(doc.data());
+            dispatch(setStorages(doc.data()));
             setSelectedStorage(doc.data().storages[0]);
         });
 

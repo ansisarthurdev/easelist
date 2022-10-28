@@ -1,19 +1,31 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components/native'
-import { View, Text, TextInput, NativeEventEmitter } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 
 //icons
 import { Feather } from '@expo/vector-icons'
 import { Octicons } from '@expo/vector-icons'
+import { AntDesign } from '@expo/vector-icons';
 
 //components
 import DateTimePicker from '@react-native-community/datetimepicker';
+import CheckItem from '../components/CheckItem'
+
+//redux
+import { useSelector, useDispatch } from 'react-redux'      
+import { selectStorages, selectCategoryItemsReservation, setCategoryItemsReservation, selectUser, setReservation } from '../app/appSlice'
+
+//firebase
+import { onSnapshot, query, collection, orderBy, doc, updateDoc, increment, where, addDoc } from 'firebase/firestore'
+import { db } from '../app/firebase'
 
 const ReservationsScreen = () => {
   
   const navigation = useNavigation();
   const [active, setActive] = useState('reservations');
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
 
   //Reservation creation variables
   const [open, setOpen] = useState(false);
@@ -21,6 +33,15 @@ const ReservationsScreen = () => {
   const [startDate, setStartDate] = useState(null);  
   const [endDate, setEndDate] = useState(null);  
   const [pickerFor, setPickerFor] = useState(null);
+
+  //redux
+  const storages = useSelector(selectStorages);
+  const reservation = useSelector(selectCategoryItemsReservation);
+
+  const [storagesMenu, openStorages] = useState(false);
+  const [selectedStorage, setSelectedStorage] = useState(storages?.storages[0]);
+  const [categories, setCategories] = useState([]);
+  const [reservations, setReservations] = useState([]);
 
   const openPicker = (picker) => {
     setOpen(!open);
@@ -51,6 +72,111 @@ const ReservationsScreen = () => {
     }
   }
 
+  const getCategories = () => {
+    setCategories([]);
+    const selected = selectedStorage.id;
+
+    const unsub = onSnapshot(query(collection(db, 'storage', selected, 'category'), orderBy('timestamp', 'desc')), (snapshot) => {
+        setCategories(snapshot.docs);
+    });
+
+    return unsub;
+  }
+
+  const [choosedCategory, setChoosedCategory] = useState(null);
+  const [categoryItems, setCategoryItems] = useState([]);
+
+  const getItems = () => {
+    setCategoryItems([]);
+    const selected = selectedStorage.id;
+    let updatedCategories = [];
+
+    const unsub = onSnapshot(query(collection(db, 'storage', selected, 'category', choosedCategory.id, 'items'), where('status', '==', 'Noliktavā')), (snapshot) => {
+      snapshot.docs.map(doc => {
+        let item = doc.data();
+
+        item = {...item, status: {
+          reservationName: name,
+          startDate: startDate,
+          endDate: endDate
+        }};
+
+        updatedCategories = [...updatedCategories, item];
+
+        setCategoryItems(updatedCategories);
+      })
+    });
+
+    return unsub;
+  }
+
+  const createReservation = async () => {
+    if(reservation?.length > 0){
+      console.log(reservation);
+
+        //create reservation
+      for(let i=0; i < reservation?.length; i++){
+        //in category take one item from available --check
+        //change item status to --check
+        const categoryRef = doc(db, 'storage', reservation[i]?.storageId, 'category', reservation[i]?.categoryId);
+        
+        await updateDoc(categoryRef, {
+          availableItems: increment(-1)
+        });
+
+        const itemRef = doc(db, 'storage', reservation[i]?.storageId, 'category', reservation[i]?.categoryId, 'items', reservation[i]?.itemId);
+
+        await updateDoc(itemRef, {
+          status: 'Rezervēts',
+          reservationName: reservation[i]?.status.reservationName,
+        });
+      }
+
+      const docRef = await addDoc(collection(db, 'reservations'), {
+        name: reservation[0].status.reservationName,
+        startDate: reservation[0].status.startDate,
+        endDate: reservation[0].status.endDate,
+        reservation: JSON.stringify(reservation),
+        addedBy: {
+          displayName: user?.displayName,
+          photoURL: user?.photoURL
+        }
+      });
+
+      updateDoc(doc(db, 'reservations', docRef.id), {
+        id: docRef.id
+      });
+
+      //reset redux reservation
+      dispatch(setCategoryItemsReservation([]));
+      setActive('reservations');
+      setName('');
+      setStartDate(null);
+      setEndDate(null);
+      setPickerFor(null);
+    }
+  }
+
+  const getReservations = () => {
+    const unsub = onSnapshot(query(collection(db, 'reservations')), (snapshot) => {
+      setReservations(snapshot.docs)
+    });
+
+    return unsub;
+  }
+
+  useEffect(() => {
+    getReservations();
+  }, [])
+
+  useEffect(() => {
+    selectedStorage && getCategories();
+  }, [selectedStorage])
+
+  useEffect(() => {
+    choosedCategory && getItems();
+  }, [choosedCategory])
+
   return (
     <Wrapper>
       <Options>
@@ -65,58 +191,50 @@ const ReservationsScreen = () => {
         </Option>
       </Options>
 
-      <Container>
+      <Container showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
       {active === 'reservations' && <>
         <ReservationsContainer>
-          <Reservation>
-            <View>
-                <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderRadius: 10, alignItems: 'center'}}>
-                    <Text style={{color: '#24282C', fontWeight: 'bold'}}>Jānis Kalniņš</Text>
+          {reservations?.length === 0 && <Text style={{textAlign: 'center', opacity: .5}}>Nav atrasta neviena rezervācija.</Text>}
+          {reservations?.length > 0 && <>
+            {reservations.map(reservation => {
+
+              const reservationItems = JSON.parse(reservation.data().reservation);
+
+              return (
+                <Reservation>
+                <View>
+                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderRadius: 10, alignItems: 'center'}}>
+                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>{reservation.data().name}</Text>
+                    </View>
+ 
+                    <View style={{marginLeft: 10}}>
+                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>{reservationItems?.length} mantas - no {reservation.data().startDate.date}</Text>
+                    </View>
+
+                    <View style={{flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginTop: 10}}>
+                        <Avatar source={{uri: reservation?.data()?.addedBy.photoURL}}/>
+                        <Text>{reservation?.data()?.addedBy.displayName}</Text>
+                    </View>
                 </View>
 
-                <View style={{marginLeft: 10}}>
-                    <Text style={{color: '#24282C', fontWeight: 'bold'}}>10 mantas - no 10.10.2022</Text>
-                </View>
+                <ArrowRightCircle onPress={() => {
+                  navigation.navigate('ReservationScreen'); 
+                  dispatch(setReservation(reservation.data())); 
+                }}>
+                    <Feather name="arrow-right" size={24} color="black" />
+                </ArrowRightCircle>
+                </Reservation>
+              )
+            })}
+          </>}
 
-                <View style={{flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginTop: 10}}>
-                    <Avatar source={{uri: 'https://lh3.googleusercontent.com/a/ALm5wu2I4LRRStJa7Q-Walr64YnnzPdsJOHzbQLG4B2uZQ=s83-c-mo'}}/>
-                    <Text>ansisarthurdev</Text>
-                </View>
-            </View>
-
-            <ArrowRightCircle onPress={() => navigation.navigate('ReservationScreen')}>
-                <Feather name="arrow-right" size={24} color="black" />
-            </ArrowRightCircle>
-          </Reservation>
-
-          <Reservation>
-            <View>
-                <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderRadius: 10, alignItems: 'center'}}>
-                    <Text style={{color: '#24282C', fontWeight: 'bold'}}>Jānis Kalniņš</Text>
-                </View>
-
-                <View style={{marginLeft: 10}}>
-                    <Text style={{color: '#24282C', fontWeight: 'bold'}}>10 mantas - no 10.10.2022</Text>
-                </View>
-
-                <View style={{flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginTop: 10}}>
-                    <Avatar source={{uri: 'https://lh3.googleusercontent.com/a/ALm5wu2I4LRRStJa7Q-Walr64YnnzPdsJOHzbQLG4B2uZQ=s83-c-mo'}}/>
-                    <Text>ansisarthurdev</Text>
-                </View>
-            </View>
-
-            <ArrowRightCircle onPress={() => navigation.navigate('CurrentActiveReservationScreen')}>
-                <Feather name="arrow-right" size={24} color="black" />
-            </ArrowRightCircle>
-          </Reservation>
-
-            <View style={{width: '100%', height: 100}}></View>
+          <View style={{width: '100%', height: 100}}></View>
         </ReservationsContainer>
       </>}
 
       {active === 'create' && <>
         <InputContainer>
-          <TextInput placeholder='Vārds/vieta kam rezervēt' onChangeText={setName} value={name}/>
+          <TextInput placeholder='Vārds/vieta kam rezervēt' onChangeText={setName} value={name} />
         </InputContainer>
 
         <DateContainer>
@@ -134,7 +252,64 @@ const ReservationsScreen = () => {
             </DateInputContainer>
           </View>
         </DateContainer>
+
+        <StorageContainer>
+          <Text style={{fontWeight: 'bold', marginBottom: 10}}>Noliktavas</Text>
+
+          {reservation.length > 0 && <Text style={{opacity: .5}}>Izvēlēts: {reservation?.length}</Text>}
+
+          {storages?.storages?.length > 0 && <>
+            <DropDownHeading onPress={() => openStorages(!storagesMenu)}>
+              <Text style={{color: '#24282C', fontWeight: 'bold', fontSize: 18}}>{selectedStorage?.name}</Text>
+              {storagesMenu ? <Octicons name="triangle-down" size={24} color="black"/> : <Octicons name="triangle-up" size={24} color="black"/>}
+            </DropDownHeading>
+          </>}
+
+          {storagesMenu &&
+            <DropDownContent>
+              {storages?.storages?.map(storage => {
+                return(
+                    <DropDownItem key={storage.id} onPress={() => { setSelectedStorage(storage); openStorages(!storagesMenu);}}>
+                        <Text>{storage.name}</Text>
+                    </DropDownItem>
+                )
+              })}
+            </DropDownContent>
+          }
+
+          <StorageContainer>
+            {categories?.length < 1 && <Text style={{textAlign: 'center', opacity: .5}}>Nav pievienotu kategoriju!</Text>}
+            {!choosedCategory && categories?.map(category => (
+            <StorageItem key={category?.data().id} onPress={() => setChoosedCategory(category?.data())}>
+                <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>
+                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderRadius: 10}}>
+                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>{category?.data().name}</Text>
+                    </View>
+
+                    <View style={{position: 'relative', top: 6}}>
+                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>{category?.data().availableItems}/{category?.data().totalItems}</Text>
+                    </View>
+                </View>
+            </StorageItem>
+            ))}
+
+            {choosedCategory && <>
+            <StorageItemsContainer>
+              <TouchableOpacity onPress={() => setChoosedCategory(null)} style={{flexDirection: 'row', alignItems: 'center', marginBottom: 20}}><AntDesign name="arrowleft" size={24} color="black" /><Text style={{marginLeft: 10, fontWeight: 'bold'}}>Atpakaļ</Text></TouchableOpacity> 
+              
+              {categoryItems?.length > 0 && <>
+                {categoryItems.map(item => <CheckItem key={item?.id} item={item} />)}
+              </>}
+            </StorageItemsContainer>
+            </>}
+
+            <AddBtn onPress={() => createReservation()} style={{opacity: reservation?.length > 0 ? 1 : .5}}><Text style={{color: 'white', fontWeight: 'bold'}}>Izveidot rezervāciju</Text></AddBtn>
+          </StorageContainer>
+
+        </StorageContainer>
       </>}
+
+        <View style={{width: '100%', height: 100}}/>
       </Container>
 
       {open && 
@@ -150,6 +325,50 @@ const ReservationsScreen = () => {
     </Wrapper>
   )
 }
+
+const AddBtn = styled.TouchableOpacity`
+margin-top: 10px;
+width: 100%;
+background-color: #24282C;
+padding: 15px;
+flex-direction: row;
+justify-content: center;
+border-radius: 10px;
+`
+
+const StorageItemsContainer = styled.View``
+
+const StorageItem = styled.TouchableOpacity`
+background: white;
+padding: 15px 25px 8px;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 10px;
+border-radius: 10px;
+`
+
+const DropDownItem = styled.TouchableOpacity`
+padding: 15px;
+margin-bottom: 10px;
+background: white;
+border-radius: 10px;
+`
+
+const DropDownContent = styled.View``
+
+const DropDownHeading = styled.TouchableOpacity`
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 5px 15px 5px 0;
+margin-bottom: 10px;
+`
+
+
+const StorageContainer = styled.View`
+margin-top: 20px;
+`
 
 const DateContainer = styled.View`
 margin-top: 20px;
@@ -202,7 +421,7 @@ const ReservationsContainer = styled.ScrollView`
 
 `
 
-const Container = styled.View`
+const Container = styled.ScrollView`
 margin-top: 20px;
 `
 

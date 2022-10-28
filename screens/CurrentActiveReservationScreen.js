@@ -6,10 +6,41 @@ import { useNavigation } from '@react-navigation/core'
 //icons
 import { MaterialIcons } from '@expo/vector-icons';
 
+//redux
+import { useSelector } from 'react-redux';
+import { selectReservation } from '../app/appSlice';
+
+//firebase
+import { db } from '../app/firebase';
+import { updateDoc, doc, deleteDoc, increment } from 'firebase/firestore';
 
 const CurrentActiveReservationScreen = () => {
 
     const navigation = useNavigation();
+    const reservation = useSelector(selectReservation);
+
+    const { addedBy, startDate, endDate, name } = reservation;
+    const reservationData = JSON.parse(reservation?.reservation);
+
+    const closeReservation = async () => {
+        //make items available
+        //set item available count 
+        //delete active reservation
+
+        for(let i=0; i < reservationData?.length; i++){
+            updateDoc(doc(db, 'storage', reservationData[i]?.storageId, 'category', reservationData[i]?.categoryId, 'items', reservationData[i]?.itemId), {
+                status: 'Noliktavā'
+            });
+
+            updateDoc(doc(db, 'storage', reservationData[i]?.storageId, 'category', reservationData[i]?.categoryId), {
+                availableItems: increment(1)
+            });
+        }
+
+        await deleteDoc(doc(db, "activeReservations", reservation?.id));
+
+        navigation.navigate('ActiveReservationsScreen')
+    }
 
   return (
     <Wrapper>
@@ -19,105 +50,49 @@ const CurrentActiveReservationScreen = () => {
         </TouchableOpacity>
 
         <Heading>
-          <Text style={{fontWeight: 'bold', fontSize: 22, paddingBottom: 20}}>Jānis Kalniņš</Text>
+          <Text style={{fontWeight: 'bold', fontSize: 22, paddingBottom: 20}}>{name}</Text>
         </Heading>
 
         <ReservationInfo>
-            <Text style={{fontWeight: 'bold', color: 'white', marginBottom: 10, fontSize: 17}}>10 mantas</Text>
-            <Text style={{color: 'white'}}>no 10.10.2022 līdz 21.10.2022</Text>
+            <Text style={{fontWeight: 'bold', color: 'white', marginBottom: 10, fontSize: 17}}>{reservationData?.length} mantas</Text>
+            <Text style={{color: 'white'}}>no {startDate?.date} līdz {endDate?.date}</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>
+                <Text style={{color: 'white'}}>Apstiprināja:</Text>
+                <Avatar source={{uri: addedBy?.photoURL}}/>
+                <Text style={{color: 'white'}}>{addedBy?.displayName}</Text>
+            </View>
         </ReservationInfo>
 
-        <ReservationEndBtn>
+        <ReservationEndBtn onPress={() => closeReservation()}>
             <Text style={{fontWeight: 'bold', color: 'white'}}>Noslēgt rezervāciju</Text>
         </ReservationEndBtn>
 
         <ReservationItems showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-            <ReservationItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center'}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
+            {reservationData?.map(r => (
+                <ReservationItem key={r?.itemId}>
+                    <View>
+                        <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center'}}>
+                            <Text style={{color: '#24282C', fontWeight: 'bold'}}>{r?.name}</Text>
+                        </View>
                     </View>
-                </View>
 
-                <Text>4gb</Text>
-            </ReservationItem>
-
-            <ReservationItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center'}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-                </View>
-
-                <Text>4gb</Text>
-            </ReservationItem>
-
-            <ReservationItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center'}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-                </View>
-
-                <Text>4gb</Text>
-            </ReservationItem>
-
-            <ReservationItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center'}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-                </View>
-
-                <Text>4gb</Text>
-            </ReservationItem>
-
-            <ReservationItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center'}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-                </View>
-
-                <Text>4gb</Text>
-            </ReservationItem>
-
-            <ReservationItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center'}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-                </View>
-
-                <Text>4gb</Text>
-            </ReservationItem>
-
-            <ReservationItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center'}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-                </View>
-
-                <Text>4gb</Text>
-            </ReservationItem>
-
-            <ReservationItem>
-                <View>
-                    <View style={{backgroundColor: '#F7F6F0', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center'}}>
-                        <Text style={{color: '#24282C', fontWeight: 'bold'}}>Spilvens</Text>
-                    </View>
-                </View>
-
-                <Text>4gb</Text>
-            </ReservationItem>
-
+                    <Text>1gb</Text>
+                </ReservationItem>
+            ))}
             <View style={{width: '100%', height: 100}}></View>
         </ReservationItems>
 
     </Wrapper>
   )
 }
+
+const Avatar = styled.Image`
+width: 30px;
+height: 30px;
+object-fit: cover;
+border-radius: 180px;
+margin: 0 6px 0 10px;
+`
 
 const ReservationItem = styled.View`
 background: white;
