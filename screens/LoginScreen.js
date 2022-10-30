@@ -8,6 +8,7 @@ import * as Google from 'expo-auth-session/providers/google'
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth'
 import { auth } from '../app/firebase'
 
+
 //icons
 import { FontAwesome5 } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
@@ -31,7 +32,7 @@ const LoginScreen = () => {
   const user = useSelector(selectUser);
   const navigation = useNavigation();
   const [loadingState, setLoading] = useState(true);
-  
+
   const checkIfLogged = () => {
     const unsubscribe = auth.onAuthStateChanged(auth => {
       if(auth){
@@ -60,7 +61,7 @@ const LoginScreen = () => {
 
   useEffect(() => {
     checkIfLogged();
-  }, [])
+  }, [response])
 
   return (
     <Wrapper>
