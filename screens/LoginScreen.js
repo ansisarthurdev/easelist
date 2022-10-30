@@ -1,20 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { useNavigation } from '@react-navigation/native'
-
-//firebase google login
-import * as WebBrowser from 'expo-web-browser'
-import * as Google from 'expo-auth-session/providers/google'
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth'
-import { auth } from '../app/firebase'
-
+import { TextInput, TouchableOpacity } from 'react-native'
 
 //icons
 import { FontAwesome5 } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
 
-//keys
-import { CLIENT_ID, ANDROID_CLIENT_ID } from '@env';
+//firebase login
+import { auth } from '../app/firebase'
+import { onAuthStateChanged, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
 
 //redux
 import { selectUser, setUser } from '../app/appSlice';
@@ -23,45 +17,75 @@ import { useSelector, useDispatch } from 'react-redux';
 //components
 import Loading from '../components/Loading'
 
-WebBrowser.maybeCompleteAuthSession();
-
 const LoginScreen = () => {
 
-  
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const navigation = useNavigation();
   const [loadingState, setLoading] = useState(true);
 
-  const checkIfLogged = () => {
-    const unsubscribe = auth.onAuthStateChanged(auth => {
-      if(auth){
-        dispatch(setUser(auth.providerData[0]));
+  //register or login state
+  const [app, setApp] = useState('Login');
+
+  //login
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  //register
+  const [name, setName] = useState('');
+
+  const checkUser = () => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        dispatch(setUser(user.providerData[0]));
         navigation.replace('App');
       } else {
         setLoading(false);
       }
-    })
+    });
   }
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
-    {
-      clientId: CLIENT_ID,
-      androidClientId: ANDROID_CLIENT_ID
-    },
-  );
+  const clearInputs = () => {
+    setEmail('');
+    setPassword('');
+    setName('');
+  }
 
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential);
+  const register = () => {
+    if(name.length !== 0, email.length !== 0, password.length !== 0){
+      setLoading(true);
+      createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+
+        updateProfile(auth.currentUser, { displayName: name })
+        clearInputs();
+        setLoading(false);
+      })
+      .catch((error) => {
+        setLoading(false);
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode, errorMessage);
+      });
     }
-  }, [response])
+  }
+
+  const login = () => {
+    if(email.length !== 0, password.length !== 0){
+      setLoading(true);
+      signInWithEmailAndPassword(auth, email, password)
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorMessage);
+      });
+    }
+  }
 
   useEffect(() => {
-    checkIfLogged();
-  }, [response])
+    checkUser();
+  }, [])
 
   return (
     <Wrapper>
@@ -70,21 +94,61 @@ const LoginScreen = () => {
           <Text>easelist</Text>
           <DescriptionText>Menidžē savus produktus vienuviet.</DescriptionText>
 
-          <LoginBtn onPress={() => promptAsync()}>
-            <LoginBtnIcon>
-              <AntDesign name="google" size={24} color="white" />
-            </LoginBtnIcon>
-            <Text style={{fontWeight: 'bold', color: 'white'}}>Google</Text>
-          </LoginBtn>
+          {app === 'Login' && <>
+            <AuthView>
+              <InputContainer>
+                  <TextInput placeholder='E-pasts' onChangeText={setEmail} value={email}/>
+              </InputContainer>
+
+              <InputContainer>
+                  <TextInput secureTextEntry={true} placeholder='Parole' onChangeText={setPassword} value={password} />
+              </InputContainer>
+            </AuthView>
+
+            <LoginBtn onPress={() => login()}><Text style={{fontWeight: 'bold', color: 'white'}}>Ieiet</Text></LoginBtn>
+
+            <TouchableOpacity onPress={() => setApp('Register')} style={{marginTop: 10}}>
+              <Text style={{fontSize: 12, opacity: .5, textDecoration: 'underline black'}}>Neesi reģistrējies?</Text>
+            </TouchableOpacity>
+          </>}
+
+          {app === 'Register' && <>
+            <AuthView>
+              <InputContainer>
+                  <TextInput placeholder='Lietotājvārds' onChangeText={setName} value={name}/>
+              </InputContainer>
+
+              <InputContainer>
+                  <TextInput placeholder='E-pasts' onChangeText={setEmail} value={email}/>
+              </InputContainer>
+
+              <InputContainer>
+                  <TextInput secureTextEntry={true} placeholder='Parole' onChangeText={setPassword} value={password} />
+              </InputContainer>
+            </AuthView>
+
+            <LoginBtn onPress={() => register()}><Text style={{fontWeight: 'bold', color: 'white'}}>Reģistrēties</Text></LoginBtn>
+
+            <TouchableOpacity onPress={() => setApp('Login')} style={{marginTop: 10}}>
+              <Text style={{fontSize: 12, opacity: .5, textDecoration: 'underline black'}}>Esi jau reģistrējies?</Text>
+            </TouchableOpacity>
+          </>}
+
         </>}
     </Wrapper>
   )
 }
 
-const LoginBtnIcon = styled.View`
-position: relative;
-bottom: -2px;
-margin-right: 20px;
+const InputContainer = styled.View`
+width: 100%;
+background: #6a6a6a50;
+padding: 10px 15px;
+border-radius: 10px;
+margin: 0 0 10px 0;
+`
+
+const AuthView = styled.View`
+width: 60%;
 `
 
 const LoginBtn = styled.TouchableOpacity`
@@ -96,6 +160,7 @@ flex-direction: row;
 align-items: center;
 justify-content: center;
 width: 60%;
+margin: 10px 0 0 0;
 `
 
 const DescriptionText = styled.Text`

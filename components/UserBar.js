@@ -40,7 +40,7 @@ const UserBar = () => {
 
         <TouchableOpacity onPress={() => setUserModal(true)}>
           <UserAvatar
-          source={{uri: user?.photoURL}}
+            source={{uri: 'https://media.istockphoto.com/vectors/anonymous-gender-neutral-face-avatar-incognito-head-silhouette-stock-vector-id1324041343?k=20&m=1324041343&s=612x612&w=0&h=LkBpcOrVP3nNjsHEEiyTCcUmVeEkMQ6SZXvLN3vd96A='}}
           />
         </TouchableOpacity>
 
