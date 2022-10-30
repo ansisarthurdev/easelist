@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 import styled from 'styled-components/native'
+import { useNavigation } from '@react-navigation/native';
 
 //icons
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -9,7 +10,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Modal from "react-native-modal";
 
 //firebase
-import { signOut } from 'firebase/auth';
 import { auth } from '../app/firebase';
 
 //redux
@@ -21,11 +21,13 @@ const UserBar = () => {
   const dispatch = useDispatch();
   const [userModal, setUserModal] = useState(false);
   const user = useSelector(selectUser);
+  const navigation = useNavigation();
 
   const logOut = () => {
     //..
-    auth.signOut();
     dispatch(setUser(null));
+    auth.signOut();
+    navigation.replace('LoginScreen');
     setUserModal(false);
   }
 

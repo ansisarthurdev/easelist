@@ -1,14 +1,12 @@
 import React from 'react'
 import styled from 'styled-components'
 
-//icons
-import { FontAwesome5 } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native'
 
-const Splash = () => {
+const Loading = () => {
   return (
     <Wrapper>
-        <FontAwesome5 name="warehouse" size={24} color='#24282C' />
-        <Text>easelist</Text>
+      <LottieView source={require('../assets/loading.json')} autoPlay loop style={{width: '100%', height: '100%'}}/>
     </Wrapper>
   )
 }
@@ -23,7 +21,7 @@ const Wrapper = styled.View`
 flex: 1;
 justify-content: center;
 align-items: center;
-background-color: #F7F6F0;
+background-color: #D9D9D9;
 `
 
-export default Splash
+export default Loading

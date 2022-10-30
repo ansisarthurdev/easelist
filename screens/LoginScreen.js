@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
+import { useNavigation } from '@react-navigation/native'
 
 //firebase google login
 import * as WebBrowser from 'expo-web-browser'
@@ -14,9 +15,33 @@ import { AntDesign } from '@expo/vector-icons';
 //keys
 import { CLIENT_ID, ANDROID_CLIENT_ID } from '@env';
 
+//redux
+import { selectUser, setUser } from '../app/appSlice';
+import { useSelector, useDispatch } from 'react-redux';
+
+//components
+import Loading from '../components/Loading'
+
 WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = () => {
+
+  
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const navigation = useNavigation();
+  const [loadingState, setLoading] = useState(true);
+  
+  const checkIfLogged = () => {
+    const unsubscribe = auth.onAuthStateChanged(auth => {
+      if(auth){
+        dispatch(setUser(auth.providerData[0]));
+        navigation.replace('App');
+      } else {
+        setLoading(false);
+      }
+    })
+  }
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
     {
@@ -33,18 +58,24 @@ const LoginScreen = () => {
     }
   }, [response])
 
+  useEffect(() => {
+    checkIfLogged();
+  }, [])
+
   return (
     <Wrapper>
-        <FontAwesome5 name="warehouse" size={24} color='#24282C' />
-        <Text>easelist</Text>
-        <DescriptionText>Menidžē savus produktus vienuviet.</DescriptionText>
+        {loadingState ? <Loading /> : <>
+          <FontAwesome5 name="warehouse" size={24} color='#24282C' />
+          <Text>easelist</Text>
+          <DescriptionText>Menidžē savus produktus vienuviet.</DescriptionText>
 
-        <LoginBtn onPress={() => promptAsync()}>
-          <LoginBtnIcon>
-            <AntDesign name="google" size={24} color="white" />
-          </LoginBtnIcon>
-          <Text style={{fontWeight: 'bold', color: 'white'}}>Google</Text>
-        </LoginBtn>
+          <LoginBtn onPress={() => promptAsync()}>
+            <LoginBtnIcon>
+              <AntDesign name="google" size={24} color="white" />
+            </LoginBtnIcon>
+            <Text style={{fontWeight: 'bold', color: 'white'}}>Google</Text>
+          </LoginBtn>
+        </>}
     </Wrapper>
   )
 }
@@ -82,7 +113,7 @@ const Wrapper = styled.View`
 flex: 1;
 justify-content: center;
 align-items: center;
-background-color: #F7F6F0;
+background-color: #D9D9D9;
 `
 
 export default LoginScreen

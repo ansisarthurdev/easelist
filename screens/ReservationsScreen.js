@@ -278,7 +278,7 @@ const ReservationsScreen = () => {
           }
 
           <StorageContainer>
-            {categories?.length < 1 && <Text style={{textAlign: 'center', opacity: .5}}>Nav pievienotu kategoriju!</Text>}
+            {categories?.length < 1 && <Text style={{textAlign: 'center', opacity: .5}}>Nav izvēlēta noliktava.</Text>}
             {!choosedCategory && categories?.map(category => (
             <StorageItem key={category?.data().id} onPress={() => setChoosedCategory(category?.data())}>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>

@@ -10,6 +10,7 @@ import { Feather } from '@expo/vector-icons'
 
 //components
 import Modal from "react-native-modal";
+import Loading from './Loading'
 
 //firebase
 import { doc, onSnapshot, collection, addDoc, updateDoc, arrayUnion, query, orderBy, serverTimestamp } from "firebase/firestore"; 
@@ -24,6 +25,7 @@ const Storages = () => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const [storagesMenu, openStorages] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     //storages
     const [create, setCreate] = useState(false);
@@ -82,8 +84,10 @@ const Storages = () => {
         const unsub = onSnapshot(doc(db, "storagesInfo", "storagesInfo"), (doc) => {
             setStoragesInfo(doc.data());
             dispatch(setStorages(doc.data()));
-            setSelectedStorage(doc.data().storages[0]);
+            setSelectedStorage(doc?.data()?.storages[0]);
         });
+
+        setLoading(false);
 
         return unsub;
     }
@@ -123,6 +127,7 @@ const Storages = () => {
 
   return (
     <Wrapper showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
+        {!loading ? <>
         <StoragesContainer>
             <Text style={{color: '#24282C', fontWeight: 'bold', fontSize: 18}}>Noliktavas ({storagesInfo?.storages?.length})</Text>
             <AddButton onPress={() => setCreate(true)}><Text style={{color: '#24282C', fontSize: 18, fontWeight: 'bold'}}>+</Text></AddButton>
@@ -174,6 +179,8 @@ const Storages = () => {
 
 
         <View style={{width: '100%', height: 100}}></View>
+        </> : <Loading />}
+        
 
 
         {/* Modals */}

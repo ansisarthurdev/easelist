@@ -9,7 +9,11 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F5F7F9"
+      "backgroundColor": "#D9D9D9"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#D9D9D9",
+      "translucent": true
     },
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -25,13 +29,18 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F7F6F0"
+        "backgroundColor": "#D9D9D9"
       },
       "package": "com.ansisarthurdev.easelist",
       "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e9cd56b1-d094-43ae-b8d2-1877b398e808"
+      }
     }
   }
 }

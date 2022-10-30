@@ -1,6 +1,7 @@
-import  firebase  from 'firebase/compat';
-import 'firebase/compat/auth';
-import 'firebase/compat/firestore';
+import * as firebase  from 'firebase/app';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+
 import {API_KEY} from '@env';
 
 const firebaseConfig = {
@@ -15,13 +16,12 @@ const firebaseConfig = {
 
 let app;
 
-if(firebase.apps.length === 0){
-    app = firebase.initializeApp(firebaseConfig);
-} else {
-    app = firebase.app();
+if (!firebase.getApps().length) {
+  const app = firebase.initializeApp(firebaseConfig);
+  initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 }
 
 
 // Initialize Firebase
-export const auth = firebase.auth();
-export const db = app.firestore();
+export const auth = getAuth(app);
+export const db = getFirestore(firebase.getApp());;

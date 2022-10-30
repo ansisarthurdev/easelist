@@ -8,7 +8,6 @@ const Stack = createStackNavigator();
 import StorageScreen from '../screens/StorageScreen'
 import CurrentStorage from '../screens/CurrentStorageScreen'
 
-
 const StorageStackNavigator = () => {
     //options={{headerShown: false}}
 

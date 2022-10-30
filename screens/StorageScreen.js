@@ -6,7 +6,7 @@ import UserBar from '../components/UserBar'
 import Storages from '../components/Storages'
 
 const StorageScreen = () => {
-return (
+  return (
     <Wrapper>
       <UserBar />
       <Storages />
