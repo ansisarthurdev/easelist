@@ -101,6 +101,8 @@ const Storages = () => {
             setCategories(snapshot.docs);
         });
 
+        setLoading(false);
+
         return unsub;
     }
 

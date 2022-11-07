@@ -11,6 +11,7 @@ import { AntDesign } from '@expo/vector-icons';
 //components
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CheckItem from '../components/CheckItem'
+import Loading from '../components/Loading'
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'      
@@ -42,6 +43,7 @@ const ReservationsScreen = () => {
   const [selectedStorage, setSelectedStorage] = useState(storages?.storages[0]);
   const [categories, setCategories] = useState([]);
   const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const openPicker = (picker) => {
     setOpen(!open);
@@ -113,6 +115,7 @@ const ReservationsScreen = () => {
   const createReservation = async () => {
     if(reservation?.length > 0){
       console.log(reservation);
+      setLoading(true);
 
         //create reservation
       for(let i=0; i < reservation?.length; i++){
@@ -137,10 +140,7 @@ const ReservationsScreen = () => {
         startDate: reservation[0].status.startDate,
         endDate: reservation[0].status.endDate,
         reservation: JSON.stringify(reservation),
-        addedBy: {
-          displayName: user?.displayName,
-          photoURL: user?.photoURL
-        }
+        addedBy: {displayName: user?.displayName}
       });
 
       updateDoc(doc(db, 'reservations', docRef.id), {
@@ -154,6 +154,7 @@ const ReservationsScreen = () => {
       setStartDate(null);
       setEndDate(null);
       setPickerFor(null);
+      setLoading(false);
     }
   }
 
@@ -211,9 +212,8 @@ const ReservationsScreen = () => {
                         <Text style={{color: '#24282C', fontWeight: 'bold'}}>{reservationItems?.length} mantas - no {reservation.data().startDate.date}</Text>
                     </View>
 
-                    <View style={{flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginTop: 10}}>
-                        <Avatar source={{uri: reservation?.data()?.addedBy.photoURL}}/>
-                        <Text>{reservation?.data()?.addedBy.displayName}</Text>
+                    <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>  
+                      <Text>Pievienoja: {reservation?.data()?.addedBy.displayName}</Text>
                     </View>
                 </View>
 
@@ -233,6 +233,7 @@ const ReservationsScreen = () => {
       </>}
 
       {active === 'create' && <>
+        {loading ? <Loading /> : <>
         <InputContainer>
           <TextInput placeholder='Vārds/vieta kam rezervēt' onChangeText={setName} value={name} />
         </InputContainer>
@@ -306,7 +307,7 @@ const ReservationsScreen = () => {
             <AddBtn onPress={() => createReservation()} style={{opacity: reservation?.length > 0 ? 1 : .5}}><Text style={{color: 'white', fontWeight: 'bold'}}>Izveidot rezervāciju</Text></AddBtn>
           </StorageContainer>
 
-        </StorageContainer>
+        </StorageContainer></>}
       </>}
 
         <View style={{width: '100%', height: 100}}/>

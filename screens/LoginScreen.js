@@ -26,6 +26,7 @@ const LoginScreen = () => {
 
   //register or login state
   const [app, setApp] = useState('Login');
+  const [alert, setAlert] = useState('');
 
   //login
   const [email, setEmail] = useState('');
@@ -35,6 +36,7 @@ const LoginScreen = () => {
   const [name, setName] = useState('');
 
   const checkUser = () => {
+    setLoading(true);
     onAuthStateChanged(auth, (user) => {
       if (user) {
         dispatch(setUser(user.providerData[0]));
@@ -46,19 +48,22 @@ const LoginScreen = () => {
   }
 
   const clearInputs = () => {
-    setEmail('');
-    setPassword('');
-    setName('');
+    if(alert){
+      setPassword('');
+    } else {
+      setEmail('');
+      setPassword('');
+      setName('');
+    }
   }
 
   const register = () => {
+    setAlert('');
     if(name.length !== 0, email.length !== 0, password.length !== 0){
       setLoading(true);
       createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-
-        updateProfile(auth.currentUser, { displayName: name })
+      .then(() => {
+        updateProfile(auth.currentUser, { displayName: name }).catch(err => console.log(err.message));
         clearInputs();
         setLoading(false);
       })
@@ -67,11 +72,16 @@ const LoginScreen = () => {
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorCode, errorMessage);
+        setAlert(errorMessage);
+        clearInputs();
       });
+    } else {
+      setAlert('Kāda no ailēm nav aizpildīta!')
     }
   }
 
   const login = () => {
+    setAlert('');
     if(email.length !== 0, password.length !== 0){
       setLoading(true);
       signInWithEmailAndPassword(auth, email, password)
@@ -79,7 +89,12 @@ const LoginScreen = () => {
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorMessage);
+        setAlert(errorMessage);
+        clearInputs();
       });
+      setLoading(false);
+    } else {
+      setAlert('Kāda no ailēm nav aizpildīta!')
     }
   }
 
@@ -94,8 +109,11 @@ const LoginScreen = () => {
           <Text>easelist</Text>
           <DescriptionText>Menidžē savus produktus vienuviet.</DescriptionText>
 
+          {/*Login*/}
           {app === 'Login' && <>
             <AuthView>
+              {alert && <AlertContainer><AlertText>{alert}</AlertText></AlertContainer>}
+
               <InputContainer>
                   <TextInput placeholder='E-pasts' onChangeText={setEmail} value={email}/>
               </InputContainer>
@@ -107,13 +125,16 @@ const LoginScreen = () => {
 
             <LoginBtn onPress={() => login()}><Text style={{fontWeight: 'bold', color: 'white'}}>Ieiet</Text></LoginBtn>
 
-            <TouchableOpacity onPress={() => setApp('Register')} style={{marginTop: 10}}>
+            <TouchableOpacity onPress={() => {setApp('Register'); clearInputs();}} style={{marginTop: 10}}>
               <Text style={{fontSize: 12, opacity: .5, textDecoration: 'underline black'}}>Neesi reģistrējies?</Text>
             </TouchableOpacity>
           </>}
 
+          {/*Register*/}
           {app === 'Register' && <>
             <AuthView>
+              {alert && <AlertContainer><AlertText>{alert}</AlertText></AlertContainer>}
+
               <InputContainer>
                   <TextInput placeholder='Lietotājvārds' onChangeText={setName} value={name}/>
               </InputContainer>
@@ -129,7 +150,7 @@ const LoginScreen = () => {
 
             <LoginBtn onPress={() => register()}><Text style={{fontWeight: 'bold', color: 'white'}}>Reģistrēties</Text></LoginBtn>
 
-            <TouchableOpacity onPress={() => setApp('Login')} style={{marginTop: 10}}>
+            <TouchableOpacity onPress={() => {setApp('Login'); clearInputs();}} style={{marginTop: 10}}>
               <Text style={{fontSize: 12, opacity: .5, textDecoration: 'underline black'}}>Esi jau reģistrējies?</Text>
             </TouchableOpacity>
           </>}
@@ -138,6 +159,19 @@ const LoginScreen = () => {
     </Wrapper>
   )
 }
+
+const AlertText = styled.Text`
+color: white;
+text-align: center;
+`
+
+const AlertContainer = styled.View`
+background: #C50000;
+padding: 10px 15px;
+margin-bottom: 20px;
+border-radius: 10px;
+
+`
 
 const InputContainer = styled.View`
 width: 100%;

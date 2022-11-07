@@ -57,8 +57,7 @@ const CurrentActiveReservationScreen = () => {
             <Text style={{fontWeight: 'bold', color: 'white', marginBottom: 10, fontSize: 17}}>{reservationData?.length} mantas</Text>
             <Text style={{color: 'white'}}>no {startDate?.date} līdz {endDate?.date}</Text>
             <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>
-                <Text style={{color: 'white'}}>Apstiprināja:</Text>
-                <Avatar source={{uri: addedBy?.photoURL}}/>
+                <Text style={{color: 'white'}}>Apstiprināja: </Text>
                 <Text style={{color: 'white'}}>{addedBy?.displayName}</Text>
             </View>
         </ReservationInfo>

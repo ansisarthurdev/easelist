@@ -56,13 +56,12 @@ const ActiveReservationsScreen = () => {
                         <Text style={{color: '#24282C', fontWeight: 'bold'}}>{reservation.data().name}</Text>
                     </View>
 
-                    <View style={{marginLeft: 10}}>
+                    <View>
                         <Text style={{color: '#24282C', fontWeight: 'bold'}}>{reservationItems?.length} mantas - līdz {reservation.data().endDate.date}</Text>
                     </View>
 
-                    <View style={{flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginTop: 10}}>
-                        <Avatar source={{uri: reservation?.data()?.addedBy.photoURL}} />
-                        <Text>{reservation?.data()?.addedBy.displayName}</Text>
+                    <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>
+                        <Text>Apstiprināja: {reservation?.data()?.addedBy.displayName}</Text>
                     </View>
                 </View>
 

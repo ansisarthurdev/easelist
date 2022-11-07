@@ -35,7 +35,6 @@ const CurrentReservationScreen = () => {
             reservation: reservation?.reservation,
             addedBy: {
               displayName: user?.displayName,
-              photoURL: user?.photoURL
             }
         });
 
@@ -92,8 +91,7 @@ const CurrentReservationScreen = () => {
             <Text style={{fontWeight: 'bold', color: 'white', marginBottom: 10, fontSize: 17}}>{reservationData?.length} mantas</Text>
             <Text style={{color: 'white'}}>no {startDate?.date} līdz {endDate?.date}</Text>
             <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>
-                <Text style={{color: 'white'}}>Pievienoja:</Text>
-                <Avatar source={{uri: addedBy?.photoURL}}/>
+                <Text style={{color: 'white'}}>Pievienoja: </Text>
                 <Text style={{color: 'white'}}>{addedBy?.displayName}</Text>
             </View>
         </ReservationInfo>

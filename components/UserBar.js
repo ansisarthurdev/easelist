@@ -4,7 +4,7 @@ import styled from 'styled-components/native'
 import { useNavigation } from '@react-navigation/native';
 
 //icons
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 
 //components
 import Modal from "react-native-modal";
@@ -25,23 +25,24 @@ const UserBar = () => {
 
   const logOut = () => {
     //..
-    dispatch(setUser(null));
     auth.signOut();
-    navigation.replace('LoginScreen');
     setUserModal(false);
+
+    setTimeout(() => {
+      dispatch(setUser(null));
+      navigation.replace('LoginScreen');
+    }, 500)
   }
 
   return (
     <Wrapper>
         <View>
             <TextWelcome>Prieks tevi redzēt,</TextWelcome>
-            <TextUser>{user?.displayName}</TextUser>
+            <TextUser>{user?.displayName ? user?.displayName : user?.email}</TextUser>
         </View>
 
-        <TouchableOpacity onPress={() => setUserModal(true)}>
-          <UserAvatar
-            source={{uri: 'https://media.istockphoto.com/vectors/anonymous-gender-neutral-face-avatar-incognito-head-silhouette-stock-vector-id1324041343?k=20&m=1324041343&s=612x612&w=0&h=LkBpcOrVP3nNjsHEEiyTCcUmVeEkMQ6SZXvLN3vd96A='}}
-          />
+        <TouchableOpacity onPress={() => setUserModal(true)} style={{marginRight: 10}}>
+          <FontAwesome5 name="user" size={24} color="black" />
         </TouchableOpacity>
 
         {/* User Modal creation */}
@@ -57,11 +58,13 @@ const UserBar = () => {
           animationIn={'bounceIn'}
         >
           <ModalContainer>
-              <ModalButton onPress={logOut}>
-                <MaterialCommunityIcons name="logout-variant" size={24} color="white" style={{marginRight: 10}}/>
-                <Text style={{color: 'white', fontWeight: 'bold'}}>Iziet</Text>
-              </ModalButton>
-              <Text style={{opacity: .5, alignSelf: 'center'}}>ansisarthurdev.com</Text>
+            <Text style={{opacity: .5, alignSelf: 'center'}}>Tu esi pieslēdzies kā</Text>
+            <Text style={{opacity: .5, alignSelf: 'center'}}>{user?.displayName ? user?.displayName : user?.email}</Text>
+            <ModalButton onPress={logOut}>
+              <MaterialCommunityIcons name="logout-variant" size={24} color="white" style={{marginRight: 10}}/>
+              <Text style={{color: 'white', fontWeight: 'bold'}}>Iziet</Text>
+            </ModalButton>
+            <Text style={{opacity: .5, alignSelf: 'center'}}>ansisarthurdev.com</Text>
           </ModalContainer>
         </Modal>
     </Wrapper>
