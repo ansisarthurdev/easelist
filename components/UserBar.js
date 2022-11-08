@@ -65,6 +65,7 @@ const UserBar = () => {
               <Text style={{color: 'white', fontWeight: 'bold'}}>Iziet</Text>
             </ModalButton>
             <Text style={{opacity: .5, alignSelf: 'center'}}>ansisarthurdev.com</Text>
+            <Text style={{opacity: .5, alignSelf: 'center', fontSize: 10}}>v1.0.0</Text>
           </ModalContainer>
         </Modal>
     </Wrapper>

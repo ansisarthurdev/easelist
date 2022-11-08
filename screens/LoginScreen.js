@@ -105,7 +105,7 @@ const LoginScreen = () => {
   return (
     <Wrapper>
         {loadingState ? <Loading /> : <>
-          <FontAwesome5 name="warehouse" size={24} color='#24282C' />
+          <FontAwesome5 name="warehouse" size={46} color='#24282C' />
           <Text>easelist</Text>
           <DescriptionText>Menidžē savus produktus vienuviet.</DescriptionText>
 
