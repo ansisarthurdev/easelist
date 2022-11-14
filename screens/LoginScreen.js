@@ -107,7 +107,7 @@ const LoginScreen = () => {
         {loadingState ? <Loading /> : <>
           <FontAwesome5 name="warehouse" size={46} color='#24282C' />
           <Text>easelist</Text>
-          <DescriptionText>Menidžē savus produktus vienuviet.</DescriptionText>
+          <DescriptionText>Menedžē savus produktus vienuviet.</DescriptionText>
 
           {/*Login*/}
           {app === 'Login' && <>

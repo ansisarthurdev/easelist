@@ -116,8 +116,7 @@ flex-direction: row;
 align-items: center;
 justify-content: space-between;
 padding: 0 5%;
-margin-bottom: 40px;
-margin-top: 10px;
+margin: 10px 0 20px 0;
 `
 
 export default UserBar
