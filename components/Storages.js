@@ -6,6 +6,7 @@ import { View, TextInput } from 'react-native'
 import Modal from "react-native-modal";
 import Loading from './Loading'
 import StorageBar from './StorageBar'
+import SearchBox from './SearchBox';
 
 //firebase
 import { doc, onSnapshot, collection, addDoc, updateDoc, arrayUnion } from "firebase/firestore"; 
@@ -19,6 +20,7 @@ const Storages = () => {
 
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
+    const [creationStatus, setCreationStatus] = useState(false);
     const [alert, setAlert] = useState('');
 
     //storages
@@ -30,6 +32,7 @@ const Storages = () => {
     const createStorage = async () => {
         //...create storage function
         if(storageName?.length > 0){
+            setCreationStatus(true);
             const docRef = await addDoc(collection(db, "storage"), {
                 name: storageName,
             });
@@ -48,6 +51,7 @@ const Storages = () => {
             setCreate(false);
             setStorageName('');
             setAlert('');
+            setCreationStatus(false);
         } else {
             setAlert('Lūdzu ievadi nosaukumu!')
         }
@@ -77,11 +81,13 @@ const Storages = () => {
     <Wrapper showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
         {!loading ? <>
         <StoragesContainer>
-            <Text style={{color: '#24282C', fontWeight: 'bold', fontSize: 18}}>Noliktavas ({storagesInfo?.storages?.length})</Text>
+            <Text style={{color: '#24282C', fontWeight: 'bold', fontSize: 18}}>Noliktavas {storagesInfo?.storages?.length > 0 && `(${storagesInfo?.storages?.length})`}</Text>
             <AddButton onPress={() => setCreate(true)}><Text style={{color: '#24282C', fontSize: 18, fontWeight: 'bold'}}>+</Text></AddButton>
         </StoragesContainer>
 
         <View style={{width: '100%', height: 1, backgroundColor: '#6A6A6A', marginVertical: 15}} />
+
+        <SearchBox />
 
         {storagesInfo?.storages?.length > 0 && <>
  
@@ -112,12 +118,14 @@ const Storages = () => {
             onBackdropPress={() => setCreate(false)}
         >
             <ModalContainer>
-                <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 20}}>Pievienot noliktavu</Text>
-                {alert && <AlertContainer><AlertText>{alert}</AlertText></AlertContainer>}
-                <InputContainer>
-                    <TextInput placeholder='Noliktavas nosaukums' onChangeText={setStorageName} value={storageName}/>
-                </InputContainer>
-                <ModalButton onPress={createStorage}><Text style={{color: 'white', fontWeight: 'bold'}}>Pievienot</Text></ModalButton>
+                {creationStatus ? <Loading /> : <>
+                    <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 20}}>Pievienot noliktavu</Text>
+                    {alert && <AlertContainer><AlertText>{alert}</AlertText></AlertContainer>}
+                    <InputContainer>
+                        <TextInput placeholder='Noliktavas nosaukums' onChangeText={setStorageName} value={storageName}/>
+                    </InputContainer>
+                    <ModalButton onPress={createStorage}><Text style={{color: 'white', fontWeight: 'bold'}}>Pievienot</Text></ModalButton>
+                </>}
             </ModalContainer>
         </Modal>
 

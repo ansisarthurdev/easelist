@@ -12,6 +12,7 @@ import { Feather, Octicons } from '@expo/vector-icons'
 
 //components
 import Modal from "react-native-modal";
+import Loading from '../components/Loading'
 
 //redux
 import { useDispatch } from 'react-redux'
@@ -30,11 +31,12 @@ const StorageBar = ({storage}) => {
     const [categoryName, setCategoryName] = useState('');
     const [showCategories, setShowCategories] = useState(false);
     const [alert, setAlert] = useState(null);
+    const [creationStatus, setCreationStatus] = useState(false);
 
     const createCategory = async () => {
         //...create storage function
         if(categoryName?.length > 0){
-    
+            setCreationStatus(true);
             const docRef = await addDoc(collection(db, "storage", id, "category"), {
                 name: categoryName,
                 totalItems: 0,
@@ -49,6 +51,7 @@ const StorageBar = ({storage}) => {
             setCategoryModal(!categoryModal);
             setCategoryName('');
             setAlert(null);
+            setCreationStatus(false);
         } else {
             setAlert('Lūdzu ievadi nosaukumu!')
         }
@@ -134,15 +137,17 @@ const StorageBar = ({storage}) => {
             onBackdropPress={() => setCategoryModal(false)}
         >
             <ModalContainer>
-                <Text style={{fontSize: 18, fontWeight: 'bold'}}>Pievienot kategoriju</Text>
-                <Text style={{color: 'gray', marginVertical: 10}}>Noliktavā ar nosaukumu {name}</Text>
-                {alert && <AlertContainer><AlertText>{alert}</AlertText></AlertContainer>}
-                
-                <InputContainer>
-                    <TextInput placeholder='Kategorijas nosaukums' onChangeText={setCategoryName} value={categoryName}/>
-                </InputContainer>
-                
-                <ModalButton onPress={createCategory}><Text style={{color: 'white', fontWeight: 'bold'}}>Pievienot</Text></ModalButton>
+                {creationStatus ? <Loading /> : <>                
+                    <Text style={{fontSize: 18, fontWeight: 'bold'}}>Pievienot kategoriju</Text>
+                    <Text style={{color: 'gray', marginVertical: 10}}>Noliktavā ar nosaukumu {name}</Text>
+                    {alert && <AlertContainer><AlertText>{alert}</AlertText></AlertContainer>}
+                    
+                    <InputContainer>
+                        <TextInput placeholder='Kategorijas nosaukums' onChangeText={setCategoryName} value={categoryName}/>
+                    </InputContainer>
+                    
+                    <ModalButton onPress={createCategory}><Text style={{color: 'white', fontWeight: 'bold'}}>Pievienot</Text></ModalButton>
+                </>}
             </ModalContainer>
         </Modal>
     </Wrapper>
@@ -247,7 +252,7 @@ const Storage = styled.View`
 background: white;
 padding: 15px 25px 10px;
 justify-content: center;
-margin-bottom: 20px;
+margin-bottom: 10px;
 border-radius: 10px;
 `
 

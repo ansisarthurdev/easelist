@@ -21,7 +21,7 @@ const Wrapper = styled.View`
 flex: 1;
 justify-content: center;
 align-items: center;
-background-color: #D9D9D9;
+background-color: transparent;
 `
 
 export default Loading

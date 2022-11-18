@@ -58,14 +58,19 @@ const UserBar = () => {
           animationIn={'bounceIn'}
         >
           <ModalContainer>
-            <Text style={{opacity: .5, alignSelf: 'center'}}>Tu esi pieslēdzies kā</Text>
-            <Text style={{opacity: .5, alignSelf: 'center'}}>{user?.displayName ? user?.displayName : user?.email}</Text>
-            <ModalButton onPress={logOut}>
-              <MaterialCommunityIcons name="logout-variant" size={24} color="white" style={{marginRight: 10}}/>
-              <Text style={{color: 'white', fontWeight: 'bold'}}>Iziet</Text>
-            </ModalButton>
+            <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+              <View style={{opacity: .5}}>
+                <Text>Tavs lietotājvārds:</Text>
+                <Text>{user?.displayName ? user?.displayName : user?.email}</Text>
+              </View>
+              <ModalButton onPress={logOut}>
+                <MaterialCommunityIcons name="logout-variant" size={24} color="white" style={{marginRight: 10}}/>
+                <Text style={{color: 'white', fontWeight: 'bold'}}>Iziet</Text>
+              </ModalButton>
+            </View>
+
             <Text style={{opacity: .5, alignSelf: 'center'}}>ansisarthurdev.com</Text>
-            <Text style={{opacity: .5, alignSelf: 'center', fontSize: 10}}>v1.0.0</Text>
+            <Text style={{opacity: .5, alignSelf: 'center', fontSize: 10}}>easelist - v1.0.1</Text>
           </ModalContainer>
         </Modal>
     </Wrapper>
@@ -74,7 +79,7 @@ const UserBar = () => {
 
 const ModalButton = styled.TouchableOpacity`
 background-color: #24282C;
-padding: 15px 20px;
+padding: 10px 20px;
 border-radius: 10px;
 align-items: center;
 margin: 20px 0 10px 0;
